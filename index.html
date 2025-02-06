@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceiraMente</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+</head>
+<body>
+    <header>
+        <h1>FinanceiraMente</h1>
+        <p>Sua calculadora de finanças pessoais</p>
+    </header>
+    <main>
+        <section id="login">
+            <h2>Login/Registro</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="senha" placeholder="Senha">
+            <button onclick="registrar(document.getElementById('email').value, document.getElementById('senha').value)">Registrar</button>
+            <button onclick="login(document.getElementById('email').value, document.getElementById('senha').value)">Login</button>
+        </section>
+        
+        <section id="calculadora">
+            <h2>Calcule suas Finanças</h2>
+            <form id="financeForm">
+                <label for="renda">Renda Mensal (R$):</label>
+                <input type="number" id="renda" placeholder="Ex.: 3000" required>
+                <label for="gastos">Gastos Mensais (R$):</label>
+                <input type="number" id="gastos" placeholder="Ex.: 2000" required>
+                <label for="meta">Meta de Economia (R$):</label>
+                <input type="number" id="meta" placeholder="Ex.: 500" required>
+                <button type="button" onclick="calcularFinancas()">Calcular</button>
+            </form>
+            <div id="resultado"></div>
+        </section>
+        <button id="exportarPDF">Exportar para PDF</button>
+        <section id="grafico">
+            <h2>Resumo Visual</h2>
+            <canvas id="financasChart" width="400" height="200"></canvas>
+        </section>
+        <section id="dicas">
+            <h2>Dicas Financeiras</h2>
+            <ul id="listaDicas">
+                <li>Crie um orçamento mensal e siga-o rigorosamente.</li>
+                <li>Priorize pagar dívidas com juros altos primeiro.</li>
+                <li>Estabeleça uma meta de economia e comprometa-se com ela.</li>
+                <li>Invista em educação financeira para tomar decisões melhores.</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; <span id="anoAtual"></span> FinanceiraMente</p>
+    </footer>
+    <script>
+        document.getElementById('anoAtual').textContent = new Date().getFullYear();
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
