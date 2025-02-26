@@ -3,100 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceiraMente</title>
+    <title>FinanceiraMente - Suas Finanças Sob Controle</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js -->
 </head>
 <body>
-    <!-- Código HTML já fornecido -->
-    <script src="script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-    <header>
+    <div id="telaLogin">
         <h1>FinanceiraMente</h1>
-        <nav>
-            <ul>
-                <li><a href="#home">Início</a></li>
-                <li><a href="#contas">Contas</a></li>
-                <li><a href="#cartoes">Cartões</a></li>
-                <li><a href="#relatorios">Relatórios</a></li>
-            </ul>
-        </nav>
-    </header>
-    <button id="toggle-dark-mode">Modo Escuro</button>
-    <main>
-        <section id="home">
-            <h2>Visão Geral</h2>
-            <div id="resumo-financeiro">
-                <p>Total de Gastos: R$ <span id="total-gastos">0.00</span></p>
-                <p>Gastos Mensais: R$ <span id="gastos-mensais">0.00</span></p>
-            </div>
-        </section>
+        <form id="loginForm">
+            <h2>Login</h2>
+            <label for="loginEmail">Email:</label>
+            <input type="email" id="loginEmail" required>
 
-        <section id="contas">
-            <h2>Cadastro de Contas</h2>
-            <form id="form-contas">
-                <label for="nome-conta">Nome da Conta:</label>
-                <input type="text" id="nome-conta" required>
-                
-                <label for="valor-conta">Valor:</label>
-                <input type="number" id="valor-conta" step="0.01" required>
-                
-                <label for="vencimento-conta">Data de Vencimento:</label>
-                <input type="date" id="vencimento-conta" required>
+            <label for="loginSenha">Senha:</label>
+            <input type="password" id="loginSenha" required>
 
-                <label for="categoria-conta">Categoria:</label>
-        <select id="categoria-conta" required>
-            <option value="moradia">Moradia</option>
-            <option value="alimentacao">Alimentação</option>
-            <option value="transporte">Transporte</option>
-            <option value="lazer">Lazer</option>
-            <option value="outros">Outros</option>
-        </select>
-                
-                <button type="submit">Cadastrar</button>
-            </form>
-            <ul id="lista-contas"></ul>
-        </section>
+            <button type="submit">Entrar</button>
+            <button type="button" id="btnCadastro">Cadastrar</button>
+        </form>
 
-        <section id="cartoes">
-            <h2>Cadastro de Cartões de Crédito</h2>
-            <form id="form-cartoes">
-                <label for="nome-cartao">Nome do Cartão:</label>
-                <input type="text" id="nome-cartao" required>
-                
-                <label for="valor-fatura">Valor da Fatura:</label>
-                <input type="number" id="valor-fatura" step="0.01" required>
-                
-                <label for="vencimento-fatura">Data de Vencimento:</label>
-                <input type="date" id="vencimento-fatura" required>
+        <form id="cadastroForm" style="display: none;">
+            <h2>Cadastro</h2>
+            <label for="cadastroNome">Nome:</label>
+            <input type="text" id="cadastroNome" required>
 
-                <label for="categoria-cartao">Categoria:</label>
-        <select id="categoria-cartao" required>
-            <option value="moradia">Moradia</option>
-            <option value="alimentacao">Alimentação</option>
-            <option value="transporte">Transporte</option>
-            <option value="lazer">Lazer</option>
-            <option value="outros">Outros</option>
-        </select>
-                
-                <button type="submit">Cadastrar</button>
-            </form>
-            <ul id="lista-cartoes"></ul>
-        </section>
+            <label for="cadastroEmail">Email:</label>
+            <input type="email" id="cadastroEmail" required>
 
-        <section id="relatorios">
-            <h2>Relatórios</h2>
-            <div id="grafico-gastos">
-                <!-- Aqui pode ser adicionado um gráfico futuramente -->
-            </div>
-        </section>
-    </main>
+            <label for="cadastroSenha">Senha:</label>
+            <input type="password" id="cadastroSenha" required>
 
-    <footer>
-        <p>&copy; 2025 ARSF FinanceiraMente</p>
-    </footer>
+            <button type="submit">Cadastrar</button>
+            <button type="button" id="btnVoltarLogin">Voltar para Login</button>
+        </form>
+    </div>
+
+    <div id="telaPrincipal" style="display: none;">
+        <header>
+            <h1>FinanceiraMente</h1>
+            <p>Organize suas finanças de forma simples e eficiente.</p>
+            <button id="btnLogout">Sair</button>
+        </header>
+
+        <main>
+            <section id="cadastro">
+                <h2>Cadastro de Contas</h2>
+                <form id="contaForm">
+                    <label for="nomeConta">Nome da Conta:</label>
+                    <input type="text" id="nomeConta" name="nomeConta" required>
+
+                    <label for="valorConta">Valor:</label>
+                    <input type="number" id="valorConta" name="valorConta" required>
+
+                    <label for="dataVencimento">Data de Vencimento:</label>
+                    <input type="date" id="dataVencimento" name="dataVencimento" required>
+
+                    <button type="submit">Adicionar Conta</button>
+                </form>
+            </section>
+
+            <section id="filtros">
+                <h2>Filtrar Contas</h2>
+                <div class="filtros-botoes">
+                    <button id="filtroTodas">Todas</button>
+                    <button id="filtroVencendo">Vencendo</button>
+                    <button id="filtroPagas">Pagas</button>
+                    <button id="btnExportar">Exportar CSV</button>
+                </div>
+            </section>
+
+            <section id="grafico">
+                <h2>Gráfico de Gastos Mensais</h2>
+                <canvas id="graficoGastos"></canvas>
+            </section>
+
+            <section id="listaContas">
+                <h2>Contas Cadastradas</h2>
+                <ul id="contasList"></ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2023 FinanceiraMente. Todos os direitos reservados.</p>
+        </footer>
+    </div>
 
     <script src="script.js"></script>
 </body>

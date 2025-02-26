@@ -1,50 +1,105 @@
 body {
     font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9;
+}
+
+#telaLogin {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#telaLogin h1 {
+    margin-bottom: 20px;
+}
+
+#telaLogin form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#telaLogin input, #telaLogin button {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#telaLogin button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#telaLogin button:hover {
+    background-color: #45a049;
+}
+
+#telaPrincipal {
+    display: none;
 }
 
 header {
     background-color: #4CAF50;
     color: white;
-    padding: 1rem;
+    padding: 20px;
     text-align: center;
+    position: relative;
 }
 
-nav ul {
-    list-style: none;
-    padding: 0;
-}
-
-nav ul li {
-    display: inline;
-    margin: 0 10px;
-}
-
-nav ul li a {
+#btnLogout {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #ff4444;
     color: white;
-    text-decoration: none;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#btnLogout:hover {
+    background-color: #cc0000;
 }
 
 main {
-    padding: 1rem;
+    padding: 20px;
 }
 
 section {
-    margin-bottom: 2rem;
+    margin-bottom: 20px;
 }
 
 form {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+label {
+    font-weight: bold;
+}
+
+input, button {
+    padding: 10px;
+    font-size: 16px;
 }
 
 button {
     background-color: #4CAF50;
     color: white;
-    padding: 0.5rem;
     border: none;
     cursor: pointer;
 }
@@ -53,17 +108,173 @@ button:hover {
     background-color: #45a049;
 }
 
-body {
-    padding: 20px;
+.filtros-botoes {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
 }
 
-.dark-mode {
-    background-color: #121212;
-    color: #ffffff;
+.filtros-botoes button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-.dark-mode button {
-    background-color: #1e1e1e;
-    color: #ffffff;
-    border: 1px solid #ffffff;
+.filtros-botoes button:hover {
+    background-color: #45a049;
 }
+
+#grafico {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+li.vencendo {
+    background-color: #ffebee; /* Vermelho claro para contas próximas do vencimento */
+}
+
+li.paga {
+    background-color: #e8f5e9; /* Verde claro para contas pagas */
+}
+
+.acoes-btn {
+    display: flex;
+    gap: 10px;
+}
+
+.editar-btn, .excluir-btn, .pagar-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.excluir-btn {
+    background-color: #ff4444;
+}
+
+.editar-btn:hover, .pagar-btn:hover {
+    background-color: #45a049;
+}
+
+.excluir-btn:hover {
+    background-color: #cc0000;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+let usuarioLogado = null;
+let contas = [];
+let grafico;
+
+// Função para carregar contas do usuário logado
+function carregarContasUsuario() {
+    if (usuarioLogado) {
+        contas = usuarioLogado.contas || [];
+        carregarContas('todas');
+    }
+}
+
+// Função para salvar usuários no localStorage
+function salvarUsuarios() {
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+}
+
+// Função para login
+function login(email, senha) {
+    const usuario = usuarios.find((u) => u.email === email && u.senha === senha);
+    if (usuario) {
+        usuarioLogado = usuario;
+        document.getElementById('telaLogin').style.display = 'none';
+        document.getElementById('telaPrincipal').style.display = 'block';
+        carregarContasUsuario();
+    } else {
+        alert('Email ou senha incorretos.');
+    }
+}
+
+// Função para cadastro
+function cadastrar(nome, email, senha) {
+    const usuarioExistente = usuarios.find((u) => u.email === email);
+    if (usuarioExistente) {
+        alert('Email já cadastrado.');
+    } else {
+        const novoUsuario = { nome, email, senha, contas: [] };
+        usuarios.push(novoUsuario);
+        salvarUsuarios();
+        alert('Cadastro realizado com sucesso!');
+        mostrarLogin();
+    }
+}
+
+// Função para logout
+function logout() {
+    usuarioLogado = null;
+    document.getElementById('telaLogin').style.display = 'block';
+    document.getElementById('telaPrincipal').style.display = 'none';
+}
+
+// Função para mostrar o formulário de login
+function mostrarLogin() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('cadastroForm').style.display = 'none';
+}
+
+// Função para mostrar o formulário de cadastro
+function mostrarCadastro() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('cadastroForm').style.display = 'block';
+}
+
+// Eventos de login e cadastro
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const senha = document.getElementById('loginSenha').value;
+    login(email, senha);
+});
+
+document.getElementById('cadastroForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('cadastroNome').value;
+    const email = document.getElementById('cadastroEmail').value;
+    const senha = document.getElementById('cadastroSenha').value;
+    cadastrar(nome, email, senha);
+});
+
+document.getElementById('btnCadastro').addEventListener('click', mostrarCadastro);
+document.getElementById('btnVoltarLogin').addEventListener('click', mostrarLogin);
+document.getElementById('btnLogout').addEventListener('click', logout);
+
+// Restante do código (carregarContas, atualizarGrafico, etc.) permanece o mesmo
