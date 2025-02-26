@@ -251,6 +251,7 @@ function login(email, senha) {
         document.getElementById('telaLogin').style.display = 'none';
         document.getElementById('telaPrincipal').style.display = 'block';
         carregarContas();
+        carregarMetas();
         solicitarPermissaoNotificacao();
     } else {
         alert('Email ou senha incorretos.');
@@ -263,7 +264,7 @@ function cadastrar(nome, email, senha) {
     if (usuarioExistente) {
         alert('Email já cadastrado.');
     } else {
-        const novoUsuario = { nome, email, senha, contas: [] };
+        const novoUsuario = { nome, email, senha, contas: [], metas: [] };
         usuarios.push(novoUsuario);
         salvarUsuarios();
         alert('Cadastro realizado com sucesso!');
@@ -307,6 +308,59 @@ function mostrarRecuperarSenha() {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('cadastroForm').style.display = 'none';
     document.getElementById('recuperarSenhaForm').style.display = 'block';
+}
+
+// Função para adicionar uma nova meta
+function adicionarMeta() {
+    if (!usuarioLogado) {
+        alert('Você precisa estar logado para adicionar uma meta.');
+        return;
+    }
+
+    const metaFinanceira = document.getElementById('metaFinanceira').value;
+    const valorMeta = document.getElementById('valorMeta').value;
+    const dataMeta = document.getElementById('dataMeta').value;
+
+    if (!metaFinanceira || !valorMeta || !dataMeta) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+    }
+
+    usuarioLogado.metas = usuarioLogado.metas || [];
+    usuarioLogado.metas.push({ meta: metaFinanceira, valor: valorMeta, data: dataMeta });
+    salvarUsuarios();
+    carregarMetas();
+
+    // Limpa o formulário
+    document.getElementById('metaFinanceira').value = '';
+    document.getElementById('valorMeta').value = '';
+    document.getElementById('dataMeta').value = '';
+}
+
+// Função para carregar as metas do usuário logado
+function carregarMetas() {
+    const listaMetas = document.getElementById('listaMetas');
+    listaMetas.innerHTML = ''; // Limpa a lista antes de carregar
+
+    if (usuarioLogado && usuarioLogado.metas) {
+        usuarioLogado.metas.forEach((meta, index) => {
+            const novaMeta = document.createElement('div');
+            novaMeta.innerHTML = `
+                <span>${meta.meta} - R$ ${meta.valor} - Conclusão: ${meta.data}</span>
+                <button onclick="excluirMeta(${index})">Excluir</button>
+            `;
+            listaMetas.appendChild(novaMeta);
+        });
+    }
+}
+
+// Função para excluir uma meta
+function excluirMeta(index) {
+    if (usuarioLogado && usuarioLogado.metas) {
+        usuarioLogado.metas.splice(index, 1);
+        salvarUsuarios();
+        carregarMetas();
+    }
 }
 
 // Eventos de login e cadastro
@@ -381,5 +435,25 @@ document.getElementById('btnConfigNotificacoes').addEventListener('click', () =>
     }
 });
 
+// Adiciona evento ao formulário de planejamento
+document.getElementById('planejamentoForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    adicionarMeta();
+});
+
 // Carrega o tema ao abrir a página
 carregarTema();
+
+// Verifica o estado do usuário logado ao carregar a página
+window.onload = function () {
+    carregarTema();
+    if (usuarioLogado) {
+        document.getElementById('telaLogin').style.display = 'none';
+        document.getElementById('telaPrincipal').style.display = 'block';
+        carregarContas();
+        carregarMetas();
+    } else {
+        document.getElementById('telaLogin').style.display = 'block';
+        document.getElementById('telaPrincipal').style.display = 'none';
+    }
+};
