@@ -6,6 +6,7 @@
     <title>FinanceiraMente - Suas Finanças Sob Controle</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> <!-- jsPDF -->
 </head>
 <body>
     <div id="telaLogin">
@@ -20,6 +21,7 @@
 
             <button type="submit">Entrar</button>
             <button type="button" id="btnCadastro">Cadastrar</button>
+            <button type="button" id="btnRecuperarSenha">Esqueci a senha</button>
         </form>
 
         <form id="cadastroForm" style="display: none;">
@@ -36,12 +38,22 @@
             <button type="submit">Cadastrar</button>
             <button type="button" id="btnVoltarLogin">Voltar para Login</button>
         </form>
+
+        <form id="recuperarSenhaForm" style="display: none;">
+            <h2>Recuperar Senha</h2>
+            <label for="recuperarEmail">Email:</label>
+            <input type="email" id="recuperarEmail" required>
+
+            <button type="submit">Enviar Link de Recuperação</button>
+            <button type="button" id="btnVoltarLoginRecuperar">Voltar para Login</button>
+        </form>
     </div>
 
     <div id="telaPrincipal" style="display: none;">
         <header>
             <h1>FinanceiraMente</h1>
             <p>Organize suas finanças de forma simples e eficiente.</p>
+            <button id="btnTema">Alternar Tema</button>
             <button id="btnLogout">Sair</button>
         </header>
 
@@ -68,8 +80,52 @@
                     <button id="filtroTodas">Todas</button>
                     <button id="filtroVencendo">Vencendo</button>
                     <button id="filtroPagas">Pagas</button>
-                    <button id="btnExportar">Exportar CSV</button>
+                    <button id="btnExportarPDF">Exportar PDF</button>
+                    <button id="btnImportarDados">Importar Dados</button>
+                    <button id="btnCompartilharConta">Compartilhar Conta</button>
+                    <button id="btnConfigNotificacoes">Configurar Notificações</button>
                 </div>
+            </section>
+
+            <section id="relatorios">
+                <h2>Relatórios Personalizados</h2>
+                <form id="relatorioForm">
+                    <label for="periodoRelatorio">Período:</label>
+                    <select id="periodoRelatorio" required>
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="30">Últimos 30 dias</option>
+                        <option value="90">Últimos 90 dias</option>
+                    </select>
+
+                    <label for="categoriaRelatorio">Categoria:</label>
+                    <select id="categoriaRelatorio" required>
+                        <option value="todas">Todas</option>
+                        <option value="agua">Água</option>
+                        <option value="luz">Luz</option>
+                        <option value="aluguel">Aluguel</option>
+                        <option value="cartao">Cartão de Crédito</option>
+                    </select>
+
+                    <button type="submit">Gerar Relatório</button>
+                </form>
+                <div id="resultadoRelatorio"></div>
+            </section>
+
+            <section id="planejamento">
+                <h2>Planejamento Financeiro</h2>
+                <form id="planejamentoForm">
+                    <label for="metaFinanceira">Meta Financeira:</label>
+                    <input type="text" id="metaFinanceira" required>
+
+                    <label for="valorMeta">Valor da Meta:</label>
+                    <input type="number" id="valorMeta" required>
+
+                    <label for="dataMeta">Data para Conclusão:</label>
+                    <input type="date" id="dataMeta" required>
+
+                    <button type="submit">Adicionar Meta</button>
+                </form>
+                <div id="listaMetas"></div>
             </section>
 
             <section id="grafico">
