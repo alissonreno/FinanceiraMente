@@ -1,459 +1,455 @@
-const { jsPDF } = window.jspdf; // Inicializa jsPDF
+document.addEventListener('DOMContentLoaded', () => {
+    // Tabs
+    const tabs = document.querySelectorAll('nav button[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-let usuarioLogado = null;
-let grafico;
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Desativa a aba ativa atual
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
 
-// Função para alternar entre temas claro e escuro
-function alternarTema() {
-    document.body.classList.toggle('tema-escuro');
-    localStorage.setItem('tema', document.body.classList.contains('tema-escuro') ? 'escuro' : 'claro');
-}
+            // Ativa a aba clicada
+            tab.classList.add('active');
+            const tabId = tab.dataset.tab;
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
 
-// Função para carregar o tema salvo
-function carregarTema() {
-    const temaSalvo = localStorage.getItem('tema');
-    if (temaSalvo === 'escuro') {
-        document.body.classList.add('tema-escuro');
+    // Theme Toggle
+    const themeToggle = document.getElementById('toggle-theme');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+        });
     }
-}
 
-// Função para calcular a diferença em dias entre duas datas
-function calcularDiasRestantes(dataVencimento) {
-    const hoje = new Date();
-    const vencimento = new Date(dataVencimento);
-    const diferenca = vencimento - hoje;
-    return Math.ceil(diferenca / (1000 * 60 * 60 * 24)); // Converte para dias
-}
+    // Modal - Add Account
+    const addAccountBtn = document.getElementById('add-account-btn');
+    const addAccountModal = document.getElementById('add-account-modal');
+    if (addAccountBtn && addAccountModal) {
+        const closeAccountModalBtn = addAccountModal.querySelector('.close-button');
 
-// Função para carregar contas do usuário logado
-function carregarContas(filtro = 'todas') {
-    const contas = usuarioLogado.contas || [];
-    const contasList = document.getElementById('contasList');
-    contasList.innerHTML = ''; // Limpa a lista antes de carregar
+        addAccountBtn.addEventListener('click', () => {
+            addAccountModal.style.display = "block";
+        });
 
-    contas.forEach((conta, index) => {
-        // Aplica o filtro
-        if (filtro === 'vencendo' && calcularDiasRestantes(conta.data) > 3) return;
-        if (filtro === 'pagas' && !conta.paga) return;
+        closeAccountModalBtn.addEventListener('click', () => {
+            addAccountModal.style.display = "none";
+        });
 
-        const novaConta = document.createElement('li');
+        window.addEventListener('click', (event) => {
+            if (event.target == addAccountModal) {
+                addAccountModal.style.display = "none";
+            }
+        });
+    }
 
-        // Verifica se a conta está próxima do vencimento
-        const diasRestantes = calcularDiasRestantes(conta.data);
-        if (diasRestantes <= 3 && !conta.paga) {
-            novaConta.classList.add('vencendo');
-            notificarVencimento(conta);
+    // Modal - Add Goal
+    const addGoalBtn = document.getElementById('add-goal-btn');
+    const addGoalModal = document.getElementById('add-goal-modal');
+    if (addGoalBtn && addGoalModal) {
+        const closeGoalModalBtn = addGoalModal.querySelector('.close-button');
+
+        addGoalBtn.addEventListener('click', () => {
+            addGoalModal.style.display = "block";
+        });
+
+        closeGoalModalBtn.addEventListener('click', () => {
+            addGoalModal.style.display = "none";
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == addGoalModal) {
+                addGoalModal.style.display = "none";
+            }
+        });
+    }
+
+    // Account Saving
+    const saveAccountBtn = document.getElementById('save-account-btn');
+    if (saveAccountBtn) {
+        saveAccountBtn.addEventListener('click', () => {
+            const accountName = document.getElementById('account-name').value;
+            const accountValue = document.getElementById('account-value').value;
+            let accountDueDate = document.getElementById('account-due-date').value; // dd/mm/yyyy
+            const accountCategory = document.getElementById('account-category').value;
+
+            // Basic validation
+            if (!accountName || !accountValue || !accountDueDate) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            const account = {
+                name: accountName,
+                value: accountValue,
+                dueDate: accountDueDate,
+                category: accountCategory,
+                paid: false // Initial state
+            };
+
+            saveAccount(account);
+            addAccountModal.style.display = 'none';
+        });
+    }
+
+    // Goal Saving
+    const saveGoalBtn = document.getElementById('save-goal-btn');
+    if (saveGoalBtn) {
+        saveGoalBtn.addEventListener('click', () => {
+            const goalName = document.getElementById('goal-name').value;
+            const goalValue = document.getElementById('goal-value').value;
+            let goalCompletionDate = document.getElementById('goal-completion-date').value; //dd/mm/yyyy
+
+            // Basic validation
+            if (!goalName || !goalValue || !goalCompletionDate) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            const goal = {
+                name: goalName,
+                value: goalValue,
+                completionDate: goalCompletionDate,
+            };
+
+            saveGoal(goal);
+            addGoalModal.style.display = 'none';
+            displayGoalProgressChart(); // Update chart after saving a goal
+        });
+    }
+
+    // Data Storage
+    function saveAccount(account) {
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        accounts.push(account);
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+        displayAccounts(); // Refresh the list
+    }
+
+    function saveGoal(goal) {
+        let goals = JSON.parse(localStorage.getItem('goals')) || [];
+        goals.push(goal);
+        localStorage.setItem('goals', JSON.stringify(goals));
+        displayGoals(); // Refresh the list
+    }
+
+    function displayAccounts() {
+        const accountsList = document.getElementById('accounts-list');
+        if (!accountsList) return;
+        accountsList.innerHTML = ''; // Clear existing list
+
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+
+        // Apply filters
+        const categoryFilter = document.getElementById('account-filter-category').value;
+        const statusFilter = document.getElementById('account-filter-status').value;
+
+        let filteredAccounts = accounts;
+
+        if (categoryFilter !== 'todas') {
+            filteredAccounts = filteredAccounts.filter(account => account.category === categoryFilter);
         }
 
-        // Verifica se a conta está paga
-        if (conta.paga) {
-            novaConta.classList.add('paga');
+        if (statusFilter === 'vencendo') {
+            filteredAccounts = filteredAccounts.filter(account => {
+                const dueDate = parseDate(account.dueDate);
+                const now = new Date();
+                const timeDiff = dueDate.getTime() - now.getTime();
+                const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                return daysLeft <= 7 && !account.paid;
+            });
+        } else if (statusFilter === 'pagas') {
+            filteredAccounts = filteredAccounts.filter(account => account.paid);
         }
 
-        novaConta.innerHTML = `
-            <span>${conta.nome} - R$ ${conta.valor} - Vencimento: ${conta.data}</span>
-            <div class="acoes-btn">
-                ${!conta.paga ? `<button class="editar-btn" data-index="${index}">Editar</button>` : ''}
-                ${!conta.paga ? `<button class="pagar-btn" data-index="${index}">Pagar</button>` : ''}
-                <button class="excluir-btn" data-index="${index}">Excluir</button>
-            </div>
-        `;
-        contasList.appendChild(novaConta);
-    });
+        filteredAccounts.forEach(account => {
+            const accountDiv = document.createElement('div');
+            accountDiv.classList.add('account-item');
+            if (account.paid) {
+                accountDiv.classList.add('paid');
+            }
 
-    // Adiciona evento de clique aos botões de editar
-    document.querySelectorAll('.editar-btn').forEach((botao) => {
-        botao.addEventListener('click', (e) => {
-            const index = e.target.getAttribute('data-index');
-            abrirFormularioEdicao(index);
+            let categoryIcon = '';
+            switch (account.category) {
+                case 'água':
+                    categoryIcon = '<i class="fas fa-tint"></i>';
+                    break;
+                case 'luz':
+                    categoryIcon = '<i class="fas fa-lightbulb"></i>';
+                    break;
+                case 'aluguel':
+                    categoryIcon = '<i class="fas fa-home"></i>';
+                    break;
+                default:
+                    categoryIcon = '<i class="fas fa-question"></i>';
+                    break;
+            }
+
+            accountDiv.innerHTML = `
+                ${categoryIcon}
+                <p>Nome: ${account.name}</p>
+                <p>Valor: ${account.value}</p>
+                <p>Vencimento: ${account.dueDate}</p>
+                <p>Categoria: ${account.category}</p>
+                <button class="delete-account" data-name="${account.name}">Excluir</button>
+                <button class="mark-paid" data-name="${account.name}">${account.paid ? 'Marcar como Não Paga' : 'Marcar como Paga'}</button>
+            `;
+            accountsList.appendChild(accountDiv);
         });
-    });
 
-    // Adiciona evento de clique aos botões de pagar
-    document.querySelectorAll('.pagar-btn').forEach((botao) => {
-        botao.addEventListener('click', (e) => {
-            const index = e.target.getAttribute('data-index');
-            marcarComoPaga(index);
+        // Add event listeners to the delete buttons
+        document.querySelectorAll('.delete-account').forEach(button => {
+            button.addEventListener('click', function () {
+                const accountName = this.dataset.name;
+                deleteAccount(accountName);
+            });
         });
-    });
 
-    // Adiciona evento de clique aos botões de exclusão
-    document.querySelectorAll('.excluir-btn').forEach((botao) => {
-        botao.addEventListener('click', (e) => {
-            const index = e.target.getAttribute('data-index');
-            excluirConta(index);
-        });
-    });
-
-    // Atualiza o gráfico de gastos
-    atualizarGrafico();
-}
-
-// Função para notificar vencimento
-function notificarVencimento(conta) {
-    if (Notification.permission === 'granted') {
-        new Notification('Conta Próxima do Vencimento', {
-            body: `${conta.nome} - R$ ${conta.valor} vence em ${calcularDiasRestantes(conta.data)} dias.`,
+        // Add event listeners to the mark as paid buttons
+        document.querySelectorAll('.mark-paid').forEach(button => {
+            button.addEventListener('click', function () {
+                const accountName = this.dataset.name;
+                markAccountAsPaid(accountName);
+            });
         });
     }
-}
 
-// Função para solicitar permissão de notificação
-function solicitarPermissaoNotificacao() {
-    if (Notification.permission !== 'granted') {
-        Notification.requestPermission();
+    function displayGoals() {
+        const goalsList = document.getElementById('goals-list');
+        if (!goalsList) return;
+        goalsList.innerHTML = ''; // Clear existing list
+
+        let goals = JSON.parse(localStorage.getItem('goals')) || [];
+        goals.forEach(goal => {
+            const goalDiv = document.createElement('div');
+
+            // Calculate savings per week and month
+            const completionDate = parseDate(goal.completionDate); // Parse dd/mm/yyyy to Date
+            const now = new Date();
+            const timeDiff = completionDate.getTime() - now.getTime();
+            const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            const weeksLeft = daysLeft / 7;
+            const monthsLeft = daysLeft / 30;
+            const savingsPerWeek = (goal.value / weeksLeft).toFixed(2);
+            const savingsPerMonth = (goal.value / monthsLeft).toFixed(2);
+
+            goalDiv.innerHTML = `
+                <p>Nome: ${goal.name}</p>
+                <p>Valor: ${goal.value}</p>
+                <p>Data de Conclusão: ${goal.completionDate}</p>
+                <p>Economia por Semana: ${savingsPerWeek}</p>
+                <p>Economia por Mês: ${savingsPerMonth}</p>
+                <button class="delete-goal" data-name="${goal.name}">Excluir</button>
+            `;
+            goalsList.appendChild(goalDiv);
+        });
+
+        // Add event listeners to the delete buttons
+        document.querySelectorAll('.delete-goal').forEach(button => {
+            button.addEventListener('click', function () {
+                const goalName = this.dataset.name;
+                deleteGoal(goalName);
+            });
+        });
     }
-}
 
-// Função para abrir o formulário de edição
-function abrirFormularioEdicao(index) {
-    const conta = usuarioLogado.contas[index];
-    document.getElementById('nomeConta').value = conta.nome;
-    document.getElementById('valorConta').value = conta.valor;
-    document.getElementById('dataVencimento').value = conta.data;
+    function deleteAccount(accountName) {
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        accounts = accounts.filter(account => account.name !== accountName);
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+        displayAccounts(); // Refresh the list
+    }
 
-    // Altera o botão do formulário para "Salvar Edição"
-    const form = document.getElementById('contaForm');
-    form.querySelector('button').textContent = 'Salvar Edição';
+    function deleteGoal(goalName) {
+        let goals = JSON.parse(localStorage.getItem('goals')) || [];
+        goals = goals.filter(goal => goal.name !== goalName);
+        localStorage.setItem('goals', JSON.stringify(goals));
+        displayGoals(); // Refresh the list
+    }
 
-    // Remove o evento de submit anterior e adiciona um novo para edição
-    form.onsubmit = (e) => {
-        e.preventDefault();
-        salvarEdicao(index);
-    };
-}
+    function markAccountAsPaid(accountName) {
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        const accountIndex = accounts.findIndex(account => account.name === accountName);
+        if (accountIndex !== -1) {
+            accounts[accountIndex].paid = !accounts[accountIndex].paid; // Toggle paid status
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+            displayAccounts(); // Refresh the list
+        }
+    }
 
-// Função para salvar a edição de uma conta
-function salvarEdicao(index) {
-    const nomeConta = document.getElementById('nomeConta').value;
-    const valorConta = document.getElementById('valorConta').value;
-    const dataVencimento = document.getElementById('dataVencimento').value;
+    function formatDate(dateString) {
+        const parts = dateString.split('/');
+        return `${parts[2]}-${parts[1]}-${parts[0]}`; // yyyy-mm-dd
+    }
 
-    usuarioLogado.contas[index] = { nome: nomeConta, valor: valorConta, data: dataVencimento, paga: usuarioLogado.contas[index].paga };
-    salvarUsuarios();
-    carregarContas();
+    function parseDate(dateString) {
+        const parts = dateString.split('/');
+        return new Date(parts[2], parts[1] - 1, parts[0]); // year, month (0-based), day
+    }
 
-    // Reseta o formulário
-    document.getElementById('contaForm').reset();
-    document.getElementById('contaForm').querySelector('button').textContent = 'Adicionar Conta';
-    document.getElementById('contaForm').onsubmit = (e) => {
-        e.preventDefault();
-        adicionarConta();
-    };
-}
+    // Login/Register functionality
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const loginModal = document.getElementById('login-modal');
+    const registerModal = document.getElementById('register-modal');
 
-// Função para adicionar uma nova conta
-function adicionarConta() {
-    const nomeConta = document.getElementById('nomeConta').value;
-    const valorConta = document.getElementById('valorConta').value;
-    const dataVencimento = document.getElementById('dataVencimento').value;
+    if (loginBtn && registerBtn && loginModal && registerModal) {
+        const loginCloseBtn = loginModal.querySelector('.close-button');
+        const registerCloseBtn = registerModal.querySelector('.close-button');
 
-    usuarioLogado.contas.push({ nome: nomeConta, valor: valorConta, data: dataVencimento, paga: false });
-    salvarUsuarios();
-    carregarContas();
+        loginBtn.addEventListener('click', () => {
+            loginModal.style.display = 'block';
+        });
 
-    // Limpa o formulário
-    document.getElementById('contaForm').reset();
-}
+        registerBtn.addEventListener('click', () => {
+            registerModal.style.display = 'block';
+        });
 
-// Função para marcar uma conta como paga
-function marcarComoPaga(index) {
-    usuarioLogado.contas[index].paga = true;
-    salvarUsuarios();
-    carregarContas();
-}
+        loginCloseBtn.addEventListener('click', () => {
+            loginModal.style.display = 'none';
+        });
 
-// Função para excluir uma conta
-function excluirConta(index) {
-    usuarioLogado.contas.splice(index, 1); // Remove a conta do array
-    salvarUsuarios();
-    carregarContas();
-}
+        registerCloseBtn.addEventListener('click', () => {
+            registerModal.style.display = 'none';
+        });
 
-// Função para atualizar o gráfico de gastos
-function atualizarGrafico() {
-    const ctx = document.getElementById('graficoGastos').getContext('2d');
+        window.addEventListener('click', (event) => {
+            if (event.target == loginModal) {
+                loginModal.style.display = 'none';
+            }
+            if (event.target == registerModal) {
+                registerModal.style.display = 'none';
+            }
+        });
 
-    // Agrupa os gastos por mês
-    const gastosPorMes = usuarioLogado.contas.reduce((acc, conta) => {
-        const mes = new Date(conta.data).toLocaleString('default', { month: 'long' });
-        if (!acc[mes]) acc[mes] = 0;
-        acc[mes] += parseFloat(conta.valor);
-        return acc;
-    }, {});
+        const loginSubmitBtn = document.getElementById('login-submit-btn');
+        const registerSubmitBtn = document.getElementById('register-submit-btn');
 
-    // Dados para o gráfico
-    const labels = Object.keys(gastosPorMes);
-    const data = Object.values(gastosPorMes);
+        loginSubmitBtn.addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            // Simulate login
+            if (email === 'test@example.com' && password === 'password') {
+                // Simulate JWT token
+                const token = 'simulated_jwt_token';
+                localStorage.setItem('token', token);
+                alert('Login successful!');
+                loginModal.style.display = 'none';
+            } else {
+                alert('Invalid credentials.');
+            }
+        });
 
-    // Configuração do gráfico
-    if (grafico) grafico.destroy(); // Destrói o gráfico anterior
-    grafico = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Gastos Mensais (R$)',
-                data: data,
-                backgroundColor: '#4CAF50',
-                borderColor: '#45a049',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+        registerSubmitBtn.addEventListener('click', () => {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            // Validation
+            if (!validateEmail(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            if (password.length < 6 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+                alert('Password must be at least 6 characters long and contain letters and numbers.');
+                return;
+            }
+
+            // Simulate registration
+            alert('Registration successful!');
+            registerModal.style.display = 'none';
+        });
+    }
+
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Event listeners for account filters
+    document.getElementById('account-filter-category').addEventListener('change', displayAccounts);
+    document.getElementById('account-filter-status').addEventListener('change', displayAccounts);
+
+    // Report Generation (basic)
+    const generateReportBtn = document.getElementById('generate-report-btn');
+    if (generateReportBtn) {
+        generateReportBtn.addEventListener('click', () => {
+            const period = document.getElementById('report-period').value;
+            generateReport(period);
+        });
+    }
+
+    function generateReport(period) {
+        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        const reportOutput = document.getElementById('report-output');
+        let totalExpenses = 0;
+
+        const now = new Date();
+        let startDate;
+
+        if (period === '7') {
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (period === '30') {
+            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        } else {
+            startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        }
+
+        const recentExpenses = accounts.filter(account => {
+            const dueDate = parseDate(account.dueDate);
+            return dueDate >= startDate && dueDate <= now;
+        });
+
+        recentExpenses.forEach(account => {
+            totalExpenses += parseFloat(account.value);
+        });
+
+        reportOutput.innerHTML = `<p>Total de Despesas nos últimos ${period} dias: R$ ${totalExpenses.toFixed(2)}</p>`;
+    }
+
+    function displayGoalProgressChart() {
+        const goals = JSON.parse(localStorage.getItem('goals')) || [];
+        if (goals.length === 0) return; // Don't display chart if there are no goals
+
+        const goal = goals[0]; // For simplicity, display progress of the first goal
+        const completionDate = parseDate(goal.completionDate);
+        const now = new Date();
+        const timeDiff = completionDate.getTime() - now.getTime();
+        const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        const weeksLeft = daysLeft / 7;
+
+        const savedAmount = 50; // Example saved amount
+
+        const chartCanvas = document.getElementById('goal-progress-chart');
+        if (!chartCanvas) return;
+
+        const chart = new Chart(chartCanvas, {
+            type: 'bar',
+            data: {
+                labels: ['Progresso da Meta'],
+                datasets: [{
+                    label: 'Valor Economizado',
+                    data: [savedAmount],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: parseInt(goal.value)
+                    }
                 }
             }
-        }
-    });
-}
-
-// Função para exportar contas em PDF
-function exportarParaPDF() {
-    const doc = new jsPDF();
-    doc.text('Contas Cadastradas', 10, 10);
-    usuarioLogado.contas.forEach((conta, index) => {
-        const y = 20 + (index * 10);
-        doc.text(`${conta.nome} - R$ ${conta.valor} - Vencimento: ${conta.data}`, 10, y);
-    });
-    doc.save('contas.pdf');
-}
-
-// Função para importar dados
-function importarDados(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const contasImportadas = JSON.parse(e.target.result);
-            usuarioLogado.contas = contasImportadas;
-            salvarUsuarios();
-            carregarContas();
-            alert('Dados importados com sucesso!');
-        };
-        reader.readAsText(file);
-    }
-}
-
-// Função para salvar usuários no localStorage
-function salvarUsuarios() {
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
-}
-
-// Função para login
-function login(email, senha) {
-    const usuario = usuarios.find((u) => u.email === email && u.senha === senha);
-    if (usuario) {
-        usuarioLogado = usuario;
-        document.getElementById('telaLogin').style.display = 'none';
-        document.getElementById('telaPrincipal').style.display = 'block';
-        carregarContas();
-        carregarMetas();
-        solicitarPermissaoNotificacao();
-    } else {
-        alert('Email ou senha incorretos.');
-    }
-}
-
-// Função para cadastro
-function cadastrar(nome, email, senha) {
-    const usuarioExistente = usuarios.find((u) => u.email === email);
-    if (usuarioExistente) {
-        alert('Email já cadastrado.');
-    } else {
-        const novoUsuario = { nome, email, senha, contas: [], metas: [] };
-        usuarios.push(novoUsuario);
-        salvarUsuarios();
-        alert('Cadastro realizado com sucesso!');
-        mostrarLogin();
-    }
-}
-
-// Função para recuperar senha
-function recuperarSenha(email) {
-    const usuario = usuarios.find((u) => u.email === email);
-    if (usuario) {
-        alert(`Um link de recuperação foi enviado para ${email}.`);
-    } else {
-        alert('Email não encontrado.');
-    }
-}
-
-// Função para logout
-function logout() {
-    usuarioLogado = null;
-    document.getElementById('telaLogin').style.display = 'block';
-    document.getElementById('telaPrincipal').style.display = 'none';
-}
-
-// Função para mostrar o formulário de login
-function mostrarLogin() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('cadastroForm').style.display = 'none';
-    document.getElementById('recuperarSenhaForm').style.display = 'none';
-}
-
-// Função para mostrar o formulário de cadastro
-function mostrarCadastro() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('cadastroForm').style.display = 'block';
-    document.getElementById('recuperarSenhaForm').style.display = 'none';
-}
-
-// Função para mostrar o formulário de recuperação de senha
-function mostrarRecuperarSenha() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('cadastroForm').style.display = 'none';
-    document.getElementById('recuperarSenhaForm').style.display = 'block';
-}
-
-// Função para adicionar uma nova meta
-function adicionarMeta() {
-    if (!usuarioLogado) {
-        alert('Você precisa estar logado para adicionar uma meta.');
-        return;
-    }
-
-    const metaFinanceira = document.getElementById('metaFinanceira').value;
-    const valorMeta = document.getElementById('valorMeta').value;
-    const dataMeta = document.getElementById('dataMeta').value;
-
-    if (!metaFinanceira || !valorMeta || !dataMeta) {
-        alert('Por favor, preencha todos os campos.');
-        return;
-    }
-
-    usuarioLogado.metas = usuarioLogado.metas || [];
-    usuarioLogado.metas.push({ meta: metaFinanceira, valor: valorMeta, data: dataMeta });
-    salvarUsuarios();
-    carregarMetas();
-
-    // Limpa o formulário
-    document.getElementById('metaFinanceira').value = '';
-    document.getElementById('valorMeta').value = '';
-    document.getElementById('dataMeta').value = '';
-}
-
-// Função para carregar as metas do usuário logado
-function carregarMetas() {
-    const listaMetas = document.getElementById('listaMetas');
-    listaMetas.innerHTML = ''; // Limpa a lista antes de carregar
-
-    if (usuarioLogado && usuarioLogado.metas) {
-        usuarioLogado.metas.forEach((meta, index) => {
-            const novaMeta = document.createElement('div');
-            novaMeta.innerHTML = `
-                <span>${meta.meta} - R$ ${meta.valor} - Conclusão: ${meta.data}</span>
-                <button onclick="excluirMeta(${index})">Excluir</button>
-            `;
-            listaMetas.appendChild(novaMeta);
         });
     }
-}
 
-// Função para excluir uma meta
-function excluirMeta(index) {
-    if (usuarioLogado && usuarioLogado.metas) {
-        usuarioLogado.metas.splice(index, 1);
-        salvarUsuarios();
-        carregarMetas();
-    }
-}
-
-// Eventos de login e cadastro
-document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const senha = document.getElementById('loginSenha').value;
-    login(email, senha);
+    // Initial Display
+    displayAccounts();
+    displayGoals();
+    displayGoalProgressChart();
 });
-
-document.getElementById('cadastroForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const nome = document.getElementById('cadastroNome').value;
-    const email = document.getElementById('cadastroEmail').value;
-    const senha = document.getElementById('cadastroSenha').value;
-    cadastrar(nome, email, senha);
-});
-
-document.getElementById('recuperarSenhaForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('recuperarEmail').value;
-    recuperarSenha(email);
-});
-
-document.getElementById('btnCadastro').addEventListener('click', mostrarCadastro);
-document.getElementById('btnVoltarLogin').addEventListener('click', mostrarLogin);
-document.getElementById('btnVoltarLoginRecuperar').addEventListener('click', mostrarLogin);
-document.getElementById('btnRecuperarSenha').addEventListener('click', mostrarRecuperarSenha);
-document.getElementById('btnLogout').addEventListener('click', logout);
-
-// Adiciona evento ao formulário de contas
-document.getElementById('contaForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    adicionarConta();
-});
-
-// Adiciona eventos aos botões de filtro
-document.getElementById('filtroTodas').addEventListener('click', () => carregarContas('todas'));
-document.getElementById('filtroVencendo').addEventListener('click', () => carregarContas('vencendo'));
-document.getElementById('filtroPagas').addEventListener('click', () => carregarContas('pagas'));
-
-// Adiciona evento ao botão de alternar tema
-document.getElementById('btnTema').addEventListener('click', alternarTema);
-
-// Adiciona evento ao botão de exportar PDF
-document.getElementById('btnExportarPDF').addEventListener('click', exportarParaPDF);
-
-// Adiciona evento ao botão de importar dados
-document.getElementById('btnImportarDados').addEventListener('change', importarDados);
-
-// Adiciona evento ao botão de compartilhar conta
-document.getElementById('btnCompartilharConta').addEventListener('click', () => {
-    const email = prompt('Digite o email do usuário para compartilhar a conta:');
-    if (email) {
-        const usuario = usuarios.find((u) => u.email === email);
-        if (usuario) {
-            usuario.contas.push(...usuarioLogado.contas);
-            salvarUsuarios();
-            alert('Conta compartilhada com sucesso!');
-        } else {
-            alert('Usuário não encontrado.');
-        }
-    }
-});
-
-// Adiciona evento ao botão de configurar notificações
-document.getElementById('btnConfigNotificacoes').addEventListener('click', () => {
-    const email = prompt('Digite o email para receber notificações:');
-    if (email) {
-        localStorage.setItem('emailNotificacoes', email);
-        alert('Notificações configuradas com sucesso!');
-    }
-});
-
-// Adiciona evento ao formulário de planejamento
-document.getElementById('planejamentoForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    adicionarMeta();
-});
-
-// Carrega o tema ao abrir a página
-carregarTema();
-
-// Verifica o estado do usuário logado ao carregar a página
-window.onload = function () {
-    carregarTema();
-    if (usuarioLogado) {
-        document.getElementById('telaLogin').style.display = 'none';
-        document.getElementById('telaPrincipal').style.display = 'block';
-        carregarContas();
-        carregarMetas();
-    } else {
-        document.getElementById('telaLogin').style.display = 'block';
-        document.getElementById('telaPrincipal').style.display = 'none';
-    }
-};
