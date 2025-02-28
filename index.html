@@ -1,182 +1,505 @@
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinanceiraMente</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <header>
-        <img src="logo.png" alt="FinanceiraMente Logo" class="logo">
-        <h1>FinanceiraMente</h1>
-        <img src="header-image.jpg" alt="Organização Financeira" class="header-image">
-    </header>
-
-    <nav>
-        <button data-tab="dashboard">Dashboard</button>
-        <button data-tab="accounts">Contas</button>
-        <button data-tab="goals">Metas</button>
-        <button data-tab="reports">Relatórios</button>
-        <button data-tab="settings">Configurações</button>
-        <button id="login-btn">Login</button>
-        <button id="register-btn">Registrar</button>
-    </nav>
-
-    <main>
-        <section id="dashboard" class="tab-content active">
-            <h2>Dashboard</h2>
-            <p>Visão geral das suas finanças.</p>
-        </section>
-
-        <section id="accounts" class="tab-content">
-            <h2>Contas</h2>
-            <div id="accounts-list">
-                <!-- Contas serão exibidas aqui -->
+    <!-- Login/Register Container -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-box">
+            <div class="tabs">
+                <button class="tab-btn active" id="login-tab-btn" data-tab="login-tab">Login</button>
+                <button class="tab-btn" id="register-tab-btn" data-tab="register-tab">Cadastro</button>
             </div>
-
-            <!-- Account Filters -->
-            <div id="account-filters">
-                <label for="account-filter-category">Filtrar por Categoria:</label>
-                <select id="account-filter-category">
-                    <option value="todas">Todas</option>
-                    <option value="água">Água</option>
-                    <option value="luz">Luz</option>
-                    <option value="aluguel">Aluguel</option>
-                    <option value="outros">Outros</option>
-                </select>
-
-                <label for="account-filter-status">Filtrar por Status:</label>
-                <select id="account-filter-status">
-                    <option value="todas">Todas</option>
-                    <option value="vencendo">Vencendo</option>
-                    <option value="pagas">Pagas</option>
-                </select>
+            
+            <div class="tab-content active" id="login-tab">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email:</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Senha:</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                    </div>
+                    <div class="form-footer">
+                        <a href="#" id="forgot-password">Esqueci minha senha</a>
+                    </div>
+                </form>
             </div>
-
-            <button id="add-account-btn">Adicionar Conta</button>
-            <div id="add-account-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-button">&times;</span>
-                    <h3>Adicionar Nova Conta</h3>
-                    <label for="account-name">Nome:</label>
-                    <input type="text" id="account-name" required><br><br>
-
-                    <label for="account-value">Valor:</label>
-                    <input type="number" id="account-value" required><br><br>
-
-                    <label for="account-due-date">Data de Vencimento:</label>
-                    <input type="text" id="account-due-date" placeholder="dd/mm/yyyy" required><br><br>
-
-                    <label for="account-category">Categoria:</label>
-                    <select id="account-category">
-                        <option value="água">Água</option>
-                        <option value="luz">Luz</option>
-                        <option value="aluguel">Aluguel</option>
-                        <option value="outros">Outros</option>
-                    </select><br><br>
-
-                    <button id="save-account-btn">Salvar Conta</button>
-                </div>
+            
+            <div class="tab-content" id="register-tab">
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-name">Nome Completo:</label>
+                        <input type="text" id="register-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email:</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Senha:</label>
+                        <input type="password" id="register-password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm-password">Confirmar Senha:</label>
+                        <input type="password" id="register-confirm-password" required minlength="6">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Solicitar Cadastro</button>
+                    </div>
+                    <div class="register-info">
+                        <p>Sua solicitação será enviada para aprovação. Você receberá um email quando seu cadastro for aprovado.</p>
+                    </div>
+                </form>
             </div>
-        </section>
-
-        <section id="goals" class="tab-content">
-            <h2>Metas</h2>
-            <div id="goals-list">
-                <!-- Metas serão exibidas aqui -->
-            </div>
-            <button id="add-goal-btn">Adicionar Meta</button>
-            <div id="add-goal-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-button">&times;</span>
-                    <h3>Adicionar Nova Meta</h3>
-                    <label for="goal-name">Nome:</label>
-                    <input type="text" id="goal-name" required><br><br>
-
-                    <label for="goal-value">Valor:</label>
-                    <input type="number" id="goal-value" required><br><br>
-
-                    <label for="goal-completion-date">Data de Conclusão:</label>
-                    <input type="text" id="goal-completion-date" placeholder="dd/mm/yyyy" required><br><br>
-
-                    <button id="save-goal-btn">Salvar Meta</button>
-                </div>
-            </div>
-
-            <!-- Chart.js container -->
-            <canvas id="goal-progress-chart" width="400" height="200"></canvas>
-        </section>
-
-        <section id="reports" class="tab-content">
-            <h2>Relatórios</h2>
-            <div id="reports-content">
-                <label for="report-period">Período:</label>
-                <select id="report-period">
-                    <option value="7">7 Dias</option>
-                    <option value="30">30 Dias</option>
-                    <option value="90">90 Dias</option>
-                </select>
-                <button id="generate-report-btn">Gerar Relatório</button>
-                <div id="report-output">
-                    <!-- Report will be displayed here -->
-                </div>
-            </div>
-        </section>
-
-        <section id="settings" class="tab-content">
-            <h2>Configurações</h2>
-            <button id="toggle-theme">Alternar Tema</button>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2024 FinanceiraMente</p>
-    </footer>
-
-    <!-- Login Modal -->
-    <div id="login-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3>Login</h3>
-            <label for="login-email">Email:</label>
-            <input type="email" id="login-email" required><br><br>
-
-            <label for="login-password">Senha:</label>
-            <input type="password" id="login-password" required><br><br>
-
-            <button id="login-submit-btn">Entrar</button>
         </div>
     </div>
 
-    <!-- Register Modal -->
-    <div id="register-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3>Registrar</h3>
-            <label for="register-name">Nome:</label>
-            <input type="text" id="register-name" required><br><br>
+    <!-- App Container (initially hidden) -->
+    <div id="app-container" class="app-container" style="display: none;">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>FinanceApp</span>
+                </div>
+                <button id="toggle-sidebar" class="toggle-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="user-profile">
+                <div class="avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-info">
+                    <h3 id="user-name">Usuário</h3>
+                    <span class="user-status">
+                        <i class="fas fa-circle"></i> Online
+                    </span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active">
+                        <a href="#" data-target="dashboard-section">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-target="despesas-section">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Despesas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-target="arquivados-section">
+                            <i class="fas fa-archive"></i>
+                            <span>Arquivados</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="btn-logout" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+        </div>
 
-            <label for="register-email">Email:</label>
-            <input type="email" id="register-email" required><br><br>
+        <div class="main-content">
+            <header class="content-header">
+                <div class="header-actions">
+                    <div class="periodo-selector">
+                        <div class="periodo-wrapper">
+                            <select id="mes-atual">
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                            <select id="ano-atual">
+                                <!-- Será preenchido via JavaScript -->
+                            </select>
+                            <button id="btn-carregar-periodo" class="btn btn-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="actions-group">
+                        <button id="btn-adicionar-despesa" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Adicionar Despesa
+                        </button>
+                        <button id="btn-arquivar-mes" class="btn btn-secondary">
+                            <i class="fas fa-archive"></i> Arquivar Mês
+                        </button>
+                        <button id="btn-exportar-excel" class="btn btn-secondary">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                    </div>
+                </div>
+            </header>
 
-            <label for="register-password">Senha:</label>
-            <input type="password" id="register-password" required><br><br>
+            <div id="dashboard-section" class="content-section active">
+                <div class="section-header">
+                    <h2>Dashboard Financeiro</h2>
+                    <p class="periodo-atual">Período: <span id="periodo-display">Carregando...</span></p>
+                </div>
 
-            <button id="register-submit-btn">Registrar</button>
+                <div class="dashboard">
+                    <div class="resumo-cards">
+                        <div class="card" id="total-mensal">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Total Mensal</h3>
+                                <p>R$ <span id="valor-total-mensal">0,00</span></p>
+                            </div>
+                        </div>
+                        <div class="card" id="total-pago">
+                            <div class="card-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Total Pago</h3>
+                                <p>R$ <span id="valor-total-pago">0,00</span></p>
+                            </div>
+                        </div>
+                        <div class="card" id="total-pendente">
+                            <div class="card-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Total Pendente</h3>
+                                <p>R$ <span id="valor-total-pendente">0,00</span></p>
+                            </div>
+                        </div>
+                        <div class="card" id="total-atrasado">
+                            <div class="card-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Total Atrasado</h3>
+                                <p>R$ <span id="valor-total-atrasado">0,00</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-charts">
+                        <div class="chart-card">
+                            <h3>Despesas por Categoria</h3>
+                            <div id="categoria-chart" class="chart-container">
+                                <svg id="categoria-donut" width="100%" height="250"></svg>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Status dos Pagamentos</h3>
+                            <div id="status-chart" class="chart-container">
+                                <svg id="status-donut" width="100%" height="250"></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="despesas-section" class="content-section">
+                <div class="section-header">
+                    <h2>Despesas</h2>
+                    <div class="filter-toggle">
+                        <button id="toggle-filtros" class="btn btn-secondary">
+                            <i class="fas fa-filter"></i> Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filtros" id="filtros-container" style="display: none;">
+                    <div class="filtro-grupo">
+                        <label for="filtro-tipo">Tipo:</label>
+                        <select id="filtro-tipo">
+                            <option value="todos">Todos</option>
+                            <option value="mensal">Mensal</option>
+                            <option value="avulso">Avulso</option>
+                        </select>
+                    </div>
+                    <div class="filtro-grupo">
+                        <label for="filtro-status">Status:</label>
+                        <select id="filtro-status">
+                            <option value="todos">Todos</option>
+                            <option value="pago">Pago</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="atrasado">Atrasado</option>
+                        </select>
+                    </div>
+                    <div class="filtro-grupo">
+                        <label for="filtro-categoria">Categoria:</label>
+                        <select id="filtro-categoria">
+                            <option value="todas">Todas</option>
+                            <!-- Preenchido via JavaScript -->
+                        </select>
+                    </div>
+                    <button id="btn-aplicar-filtros" class="btn btn-primary">Aplicar Filtros</button>
+                </div>
+
+                <div id="tabela-container" class="table-responsive">
+                    <table id="tabela-despesas" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Tipo</th>
+                                <th>Valor (R$)</th>
+                                <th>Vencimento</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="despesas-body">
+                            <!-- Preenchido via JavaScript -->
+                            <tr>
+                                <td colspan="7" class="empty-state">
+                                    <div class="empty-state-container">
+                                        <i class="fas fa-search"></i>
+                                        <p>Carregando despesas...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="arquivados-section" class="content-section">
+                <div class="section-header">
+                    <h2>Meses Arquivados</h2>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tabela-arquivados" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Mês</th>
+                                <th>Ano</th>
+                                <th>Total (R$)</th>
+                                <th>Qtd. Despesas</th>
+                                <th>Data de Arquivamento</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="arquivados-body">
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <div class="empty-state-container">
+                                        <i class="fas fa-archive"></i>
+                                        <p>Carregando meses arquivados...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Modal Adicionar Despesa -->
+    <div id="modal-despesa" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-titulo">Adicionar Despesa</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="form-despesa">
+                <input type="hidden" id="despesa-id">
+                
+                <div class="form-group tipo-tabs">
+                    <button type="button" class="tab-tipo active" data-tipo="mensal">
+                        <i class="fas fa-calendar-alt"></i> Mensal
+                    </button>
+                    <button type="button" class="tab-tipo" data-tipo="avulso">
+                        <i class="fas fa-receipt"></i> Avulso
+                    </button>
+                    <input type="hidden" id="despesa-tipo" value="mensal">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="despesa-descricao">Descrição:</label>
+                        <input type="text" id="despesa-descricao" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="despesa-categoria">Categoria:</label>
+                        <select id="despesa-categoria" required>
+                            <option value="">Selecione</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="servicos">Serviços</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="despesa-valor">Valor (R$):</label>
+                        <input type="text" id="despesa-valor" class="valor-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="despesa-vencimento">Data de Vencimento:</label>
+                        <input type="date" id="despesa-vencimento" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="despesa-status">Status:</label>
+                        <select id="despesa-status" required>
+                            <option value="pendente">Pendente</option>
+                            <option value="pago">Pago</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="campo-data-pagamento" style="display:none;">
+                        <label for="despesa-data-pagamento">Data de Pagamento:</label>
+                        <input type="date" id="despesa-data-pagamento">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="despesa-observacoes">Observações:</label>
+                    <textarea id="despesa-observacoes"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="btn-cancelar" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar exclusão -->
+    <div id="modal-confirmar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmar Ação</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <p id="mensagem-confirmar">Tem certeza que deseja realizar esta ação?</p>
+            <div class="form-actions">
+                <button id="btn-confirmar-nao" class="btn btn-secondary">Não</button>
+                <button id="btn-confirmar-sim" class="btn btn-primary">Sim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Arquivar Mês -->
+    <div id="modal-arquivar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Arquivar Mês Atual</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-archive"></i>
+            </div>
+            <p>Tem certeza que deseja arquivar todas as despesas do mês atual?</p>
+            <p>Esta ação irá marcar o mês como arquivado, mas você ainda poderá visualizar os dados posteriormente.</p>
+            <div class="form-actions">
+                <button id="btn-cancelar-arquivar" class="btn btn-secondary">Cancelar</button>
+                <button id="btn-confirmar-arquivar" class="btn btn-primary">Arquivar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Recuperar Senha -->
+    <div id="modal-recuperar-senha" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Recuperar Senha</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-key"></i>
+            </div>
+            <p>Informe seu email para receber um link de recuperação de senha:</p>
+            <form id="form-recuperar-senha">
+                <div class="form-group">
+                    <label for="recuperar-email">Email:</label>
+                    <input type="email" id="recuperar-email" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-cancelar-recuperar" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Status do Cadastro -->
+    <div id="modal-cadastro-status" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Solicitação de Cadastro</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <div id="cadastro-status-content">
+                <p>Sua solicitação de cadastro foi enviada com sucesso!</p>
+                <p>Você receberá um email quando seu cadastro for aprovado.</p>
+            </div>
+            <div class="form-actions">
+                <button id="btn-cadastro-status-ok" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificacao" class="notificacao">
+        <div class="notificacao-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="notificacao-content">
+            <p id="mensagem-notificacao"></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
 </body>
-
 </html>

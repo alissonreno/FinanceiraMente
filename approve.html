@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprovar Cadastro - Sistema de Controle de Contas Mensais</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(74,111,165,0.9) 0%, rgba(92,160,211,0.9) 100%);
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #4a6fa5;
+            font-size: 1.8rem;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .user-info {
+            background-color: #f7f9fc;
+            border: 1px solid #e1e5ee;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .user-info p {
+            margin: 5px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #365687;
+        }
+        
+        .btn-reject {
+            background-color: #dc3545;
+        }
+        
+        .btn-reject:hover {
+            background-color: #bd2130;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aprovar Solicitação de Cadastro</h1>
+        
+        <div id="loading">Carregando informações da solicitação...</div>
+        
+        <div id="user-details" style="display: none;">
+            <p>Você está prestes a aprovar a seguinte solicitação de cadastro:</p>
+            
+            <div class="user-info">
+                <p><strong>Nome:</strong> <span id="user-name"></span></p>
+                <p><strong>Email:</strong> <span id="user-email"></span></p>
+                <p><strong>Data da Solicitação:</strong> <span id="request-date"></span></p>
+            </div>
+            
+            <div class="actions">
+                <button id="btn-approve" class="btn">Aprovar Cadastro</button>
+                <button id="btn-reject" class="btn btn-reject">Rejeitar</button>
+            </div>
+        </div>
+        
+        <div id="invalid-request" style="display: none;">
+            <p class="result error">Esta solicitação é inválida ou já foi processada.</p>
+            <a href="index.html" class="btn">Voltar para a página inicial</a>
+        </div>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get token and email from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const email = urlParams.get('email');
+            
+            if (!token || !email) {
+                showInvalidRequest();
+                return;
+            }
+            
+            // Validate token
+            const approvalTokens = JSON.parse(localStorage.getItem('financeApp_approvalTokens') || '{}');
+            if (!approvalTokens[email] || approvalTokens[email] !== token) {
+                showInvalidRequest();
+                return;
+            }
+            
+            // Get user information
+            const users = JSON.parse(localStorage.getItem('financeApp_users') || '[]');
+            const user = users.find(u => u.email === email);
+            
+            if (!user) {
+                showInvalidRequest();
+                return;
+            }
+            
+            // Check if already approved
+            if (user.approved) {
+                showResult('Esta conta já foi aprovada anteriormente.', false);
+                return;
+            }
+            
+            // Show user details
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('user-details').style.display = 'block';
+            
+            document.getElementById('user-name').textContent = user.name;
+            document.getElementById('user-email').textContent = user.email;
+            document.getElementById('request-date').textContent = new Date(user.created).toLocaleString();
+            
+            // Set up approval button
+            document.getElementById('btn-approve').addEventListener('click', function() {
+                approveUser(email);
+            });
+            
+            // Set up reject button
+            document.getElementById('btn-reject').addEventListener('click', function() {
+                rejectUser(email);
+            });
+        });
+        
+        function showInvalidRequest() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('invalid-request').style.display = 'block';
+        }
+        
+        function approveUser(email) {
+            // Get users
+            const users = JSON.parse(localStorage.getItem('financeApp_users') || '[]');
+            const userIndex = users.findIndex(u => u.email === email);
+            
+            if (userIndex !== -1) {
+                // Approve user
+                users[userIndex].approved = true;
+                users[userIndex].approvedAt = new Date().toISOString();
+                localStorage.setItem('financeApp_users', JSON.stringify(users));
+                
+                // Remove approval token
+                const approvalTokens = JSON.parse(localStorage.getItem('financeApp_approvalTokens') || '{}');
+                delete approvalTokens[email];
+                localStorage.setItem('financeApp_approvalTokens', JSON.stringify(approvalTokens));
+                
+                // Show success message
+                showResult(`Cadastro de ${users[userIndex].name} aprovado com sucesso!`, true);
+            } else {
+                showResult('Erro ao aprovar cadastro. Usuário não encontrado.', false);
+            }
+        }
+        
+        function rejectUser(email) {
+            // Get users
+            const users = JSON.parse(localStorage.getItem('financeApp_users') || '[]');
+            const userIndex = users.findIndex(u => u.email === email);
+            
+            if (userIndex !== -1) {
+                // Remove user
+                const userName = users[userIndex].name;
+                users.splice(userIndex, 1);
+                localStorage.setItem('financeApp_users', JSON.stringify(users));
+                
+                // Remove approval token
+                const approvalTokens = JSON.parse(localStorage.getItem('financeApp_approvalTokens') || '{}');
+                delete approvalTokens[email];
+                localStorage.setItem('financeApp_approvalTokens', JSON.stringify(approvalTokens));
+                
+                // Show rejection message
+                showResult(`Cadastro de ${userName} rejeitado.`, true);
+            } else {
+                showResult('Erro ao rejeitar cadastro. Usuário não encontrado.', false);
+            }
+        }
+        
+        function showResult(message, success) {
+            document.getElementById('user-details').style.display = 'none';
+            
+            const resultElement = document.getElementById('result');
+            resultElement.style.display = 'block';
+            resultElement.className = `result ${success ? 'success' : 'error'}`;
+            resultElement.innerHTML = `
+                <p>${message}</p>
+                <a href="index.html" class="btn">Voltar para a página inicial</a>
+            `;
+        }
+    </script>
+</body>
+</html>
